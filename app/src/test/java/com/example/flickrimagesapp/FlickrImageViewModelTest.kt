@@ -1,12 +1,15 @@
 package com.example.flickrimagesapp
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.compose.runtime.mutableStateOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.example.flickrimagesapp.data.FlickrRepository
+import com.example.flickrimagesapp.model.FlickrImage
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
 import org.junit.*
+import org.junit.Assert.*
 import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlickrImageViewModelTest {
@@ -14,13 +17,17 @@ class FlickrImageViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testScheduler = TestCoroutineScheduler()
+    private val testDispatcher = StandardTestDispatcher(testScheduler)
     private lateinit var viewModel: FlickrImageViewModel
+    private lateinit var repository: FlickrRepository
 
     @Before
     fun setup() {
+        MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = spy(FlickrImageViewModel())
+        repository = mock(FlickrRepository::class.java)
+        viewModel = FlickrImageViewModel(repository)
     }
 
     @After
@@ -29,23 +36,54 @@ class FlickrImageViewModelTest {
     }
 
     @Test
-    fun `test searchImages updates images list`() = runTest {
+    fun `test searchImages updates images list`() = runTest(testScheduler) {
         // Arrange
-        val dummyImages = mutableStateOf(
-            listOf(
-                FlickrImage("https://example.com/image1.jpg", "Image 1", "Author 1", "2025-01-01"),
-                FlickrImage("https://example.com/image2.jpg", "Image 2", "Author 2", "2025-01-02")
-            )
+        val dummyImages = listOf(
+            FlickrImage("https://example.com/image1.jpg", "Image 1", "Author 1", "2025-01-01"),
+            FlickrImage("https://example.com/image2.jpg", "Image 2", "Author 2", "2025-01-02")
         )
 
-        doReturn(dummyImages).`when`(viewModel).images
+        whenever(repository.searchImages("test")).thenReturn(dummyImages)
 
         // Act
         viewModel.searchImages("test")
-        advanceUntilIdle()
+        testScheduler.advanceUntilIdle()
 
         // Assert
-        Assert.assertEquals(2, viewModel.images.value.size)
+        assertEquals(2, viewModel.images.value.size)
+        assertEquals(dummyImages, viewModel.images.value)
+    }
+
+    @Test
+    fun `test isLoading state during search`() = runTest(testScheduler) {
+        // Arrange: Simulate delay in repository response
+        whenever(repository.searchImages("test")).thenAnswer {
+            runBlocking {
+                delay(100)
+                listOf<FlickrImage>()
+            }
+        }
+
+        // Act
+        viewModel.searchImages("test")
+
+        // Assert - isLoading should be true before search completes
+        assertTrue(viewModel.isLoading.value)
+
+        testScheduler.advanceUntilIdle()
+
+        // Assert - isLoading should be false after search completes
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `test empty query returns no images`() = runTest(testScheduler) {
+        // Act
+        viewModel.searchImages("")
+        testScheduler.advanceUntilIdle()
+
+        // Assert
+        assertTrue(viewModel.images.value.isEmpty())
     }
 
     @Test
@@ -54,7 +92,7 @@ class FlickrImageViewModelTest {
 
         viewModel.selectImage(image)
 
-        Assert.assertEquals(image, viewModel.selectedImage.value)
+        assertEquals(image, viewModel.selectedImage.value)
     }
 
     @Test
@@ -64,8 +102,6 @@ class FlickrImageViewModelTest {
 
         viewModel.clearSelectedImage()
 
-        Assert.assertNull(viewModel.selectedImage.value)
+        assertNull(viewModel.selectedImage.value)
     }
 }
-
-

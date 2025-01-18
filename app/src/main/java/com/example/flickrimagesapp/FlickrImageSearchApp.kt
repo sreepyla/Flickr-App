@@ -97,5 +97,3 @@ fun FlickrImageSearchApp(viewModel: FlickrImageViewModel = viewModel()) {
     }
 }
 
-
-

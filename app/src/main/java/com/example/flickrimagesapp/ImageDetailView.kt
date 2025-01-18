@@ -1,6 +1,7 @@
 package com.example.flickrimagesapp
 
 import android.content.Intent
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,16 +12,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.flickrimagesapp.model.FlickrImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageDetailView(image: FlickrImage, onBack: () -> Unit) {
+    val context = LocalContext.current
+
     Column(
-        modifier = Modifier.fillMaxSize(1f).background(Color.Gray)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Gray)
     ) {
         CenterAlignedTopAppBar(
             title = { Text("Image Details") },
@@ -57,7 +64,7 @@ fun ImageDetailView(image: FlickrImage, onBack: () -> Unit) {
                     putExtra(Intent.EXTRA_TEXT, "Check out this image: ${image.imageUrl}")
                     type = "text/plain"
                 }
-                MyApplication.instance.startActivity(Intent.createChooser(intent, "Share Image"))
+                context.startActivity(Intent.createChooser(intent, "Share Image"))
             },
             modifier = Modifier.padding(8.dp).testTag("ShareButton")
         ) {
