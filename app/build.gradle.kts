@@ -98,6 +98,11 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.5.0")
     testImplementation("org.robolectric:robolectric:4.10")
 
+    testImplementation(libs.byte.buddy.v1149)
+    testImplementation(libs.byte.buddy.agent)
+
+
+
     implementation("com.google.dagger:hilt-android:2.51")
     kapt("com.google.dagger:hilt-android-compiler:2.51")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")

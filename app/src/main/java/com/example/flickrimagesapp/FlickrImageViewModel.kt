@@ -18,6 +18,8 @@ class FlickrImageViewModel @Inject constructor(
         private set
     var isLoading = mutableStateOf(false)
         private set
+    var errorMessage = mutableStateOf<String?>(null)
+        private set
     var selectedImage = mutableStateOf<FlickrImage?>(null)
         private set
 
@@ -28,10 +30,20 @@ class FlickrImageViewModel @Inject constructor(
         }
 
         isLoading.value = true
+        errorMessage.value = null
+
         viewModelScope.launch {
-            val result = flickrRepository.searchImages(query)
-            images.value = result
-            isLoading.value = false
+            try {
+                val result = flickrRepository.searchImages(query)
+                if (result.isEmpty()) {
+                    errorMessage.value = "No results found."
+                }
+                images.value = result
+            } catch (e: Exception) {
+                errorMessage.value = "Something went wrong. Please try again."
+            } finally {
+                isLoading.value = false
+            }
         }
     }
 
@@ -43,6 +55,3 @@ class FlickrImageViewModel @Inject constructor(
         selectedImage.value = null
     }
 }
-
-
-
