@@ -1,16 +1,7 @@
 package com.example.flickrimagesapp
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-class MyApplication : Application() {
-
-    companion object {
-        lateinit var instance: MyApplication
-            private set
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        instance = this
-    }
-}
+@HiltAndroidApp
+class MyApplication : Application()

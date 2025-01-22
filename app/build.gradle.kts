@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android)
+    id("kotlin-kapt")
 }
 
 android {
@@ -45,6 +47,14 @@ android {
         compose = true
     }
 
+    hilt {
+        enableAggregatingTask = false
+    }
+
+    kapt {
+        correctErrorTypes = true
+    }
+
     testOptions {
         unitTests {
 
@@ -54,6 +64,8 @@ android {
     }
 
 }
+
+
 
 dependencies {
 
@@ -86,6 +98,16 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.5.0")
     testImplementation("org.robolectric:robolectric:4.10")
 
+    testImplementation(libs.byte.buddy.v1149)
+    testImplementation(libs.byte.buddy.agent)
+
+
+
+    implementation("com.google.dagger:hilt-android:2.51")
+    kapt("com.google.dagger:hilt-android-compiler:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+
+
     androidTestImplementation(libs.ui.test.junit4)
     androidTestImplementation(libs.coil.compose)
     androidTestImplementation(libs.androidx.espresso.core.v350)
@@ -97,3 +119,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
